@@ -126,8 +126,10 @@ export enum UpdateURL {
 }
 
 // API
-export const getApiBaseURL = () => env.INSOMNIA_API_URL || 'https://api.insomnia.rest';
-export const getMockServiceURL = () => env.INSOMNIA_MOCK_API_URL || 'https://mock.insomnia.rest';
+export const getApiBaseURL = () =>
+  env.INSOMNIA_API_URL || 'http://localhost:3001';
+export const getMockServiceURL = () =>
+  env.INSOMNIA_MOCK_API_URL || 'http://localhost:3002';
 
 export const getMockServiceBinURL = (serverId: string, path: string, customUrl?: string) => {
   if (serverId && !customUrl) {
@@ -138,7 +140,6 @@ export const getMockServiceBinURL = (serverId: string, path: string, customUrl?:
   }
   return customUrl + '/bin/' + serverId + path;
 };
-export const getAIServiceURL = () => env.INSOMNIA_AI_URL || 'https://ai.insomnia.rest';
 
 export const getUpdatesBaseURL = () => env.INSOMNIA_UPDATES_URL || 'https://updates.insomnia.rest';
 

@@ -226,13 +226,6 @@ async function renderApp() {
                       ).syncProjectsAction(...args),
                   },
                   {
-                    path: 'ai/access',
-                    action: async (...args) =>
-                      (
-                        await import('./routes/actions')
-                      ).accessAIApiAction(...args),
-                  },
-                  {
                     path: 'project',
                     id: '/project',
                     children: [
@@ -795,32 +788,6 @@ async function renderApp() {
                                             ],
                                           },
                                         ],
-                                      },
-                                    ],
-                                  },
-                                ],
-                              },
-                              {
-                                path: 'ai',
-                                children: [
-                                  {
-                                    path: 'generate',
-                                    children: [
-                                      {
-                                        path: 'collection-and-tests',
-                                        action: async (...args) =>
-                                          (
-                                            await import('./routes/actions')
-                                          ).generateCollectionAndTestsAction(
-                                            ...args,
-                                          ),
-                                      },
-                                      {
-                                        path: 'tests',
-                                        action: async (...args) =>
-                                          (
-                                            await import('./routes/actions')
-                                          ).generateTestsAction(...args),
                                       },
                                     ],
                                   },
