@@ -17,8 +17,6 @@ import { CookieJar } from '../../models/cookie-jar';
 import { GrpcRequest, isGrpcRequestId } from '../../models/grpc-request';
 import { GrpcRequestMeta } from '../../models/grpc-request-meta';
 import * as requestOperations from '../../models/helpers/request-operations';
-import { MockRoute } from '../../models/mock-route';
-import { MockServer } from '../../models/mock-server';
 import { getPathParametersFromUrl, isEventStreamRequest, isRequest, Request, RequestAuthentication, RequestBody, RequestHeader, RequestParameter } from '../../models/request';
 import { isRequestMeta, RequestMeta } from '../../models/request-meta';
 import { RequestVersion } from '../../models/request-version';
@@ -52,7 +50,6 @@ export interface RequestLoaderData {
   activeResponse: Response | null;
   responses: Response[];
   requestVersions: RequestVersion[];
-  mockServerAndRoutes: (MockServer & { routes: MockRoute[] })[];
 }
 
 export const loader: LoaderFunction = async ({ params }): Promise<RequestLoaderData | WebSocketRequestLoaderData | GrpcRequestLoaderData> => {
@@ -91,20 +88,12 @@ export const loader: LoaderFunction = async ({ params }): Promise<RequestLoaderD
   const responses = (filterResponsesByEnv ? filteredResponses : allResponses)
     .sort((a: BaseModel, b: BaseModel) => (a.created > b.created ? -1 : 1));
 
-  // Q(gatzjames): load mock servers here or somewhere else?
-  const mockServers = await models.mockServer.findByProjectId(projectId);
-  const mockRoutes = await database.find<MockRoute>(models.mockRoute.type, { parentId: { $in: mockServers.map(s => s._id) } });
-  const mockServerAndRoutes = mockServers.map(mockServer => ({
-    ...mockServer,
-    routes: mockRoutes.filter(route => route.parentId === mockServer._id),
-  }));
   return {
     activeRequest,
     activeRequestMeta,
     activeResponse,
     responses,
     requestVersions: await models.requestVersion.findByParentId(requestId),
-    mockServerAndRoutes,
   } as RequestLoaderData | WebSocketRequestLoaderData;
 };
 
@@ -496,43 +485,6 @@ export const sendAction: ActionFunction = async ({ request, params }) => {
   }
 };
 
-export const createAndSendToMockbinAction: ActionFunction = async ({ request }) => {
-  const patch = await request.json() as Partial<Request>;
-  invariant(typeof patch.url === 'string', 'URL is required');
-  invariant(typeof patch.method === 'string', 'method is required');
-  invariant(typeof patch.parentId === 'string', 'mock route ID is required');
-  const mockRoute = await models.mockRoute.getById(patch.parentId);
-  invariant(mockRoute, 'mock route not found');
-  // Get or create a testing request for this mock route
-  const childRequests = await models.request.findByParentId(mockRoute._id);
-  const testRequest = childRequests[0] || (await models.request.create({ parentId: mockRoute._id, isPrivate: true }));
-  invariant(testRequest, 'mock route is missing a testing request');
-  const req = await models.request.update(testRequest, patch);
-
-  const {
-    environment,
-    settings,
-    clientCertificates,
-    caCert,
-    activeEnvironmentId,
-    timelinePath,
-    responseId,
-  } = await fetchRequestData(req._id);
-
-  const renderResult = await tryToInterpolateRequest(req, environment._id, RENDER_PURPOSE_SEND);
-  const renderedRequest = await tryToTransformRequestWithPlugins(renderResult);
-  const res = await sendCurlAndWriteTimeline(
-    renderedRequest,
-    clientCertificates,
-    caCert,
-    settings,
-    timelinePath,
-    responseId,
-  );
-  const response = await responseTransform(res, activeEnvironmentId, renderedRequest, renderResult.context);
-  await models.response.create(response);
-  return null;
-};
 export const deleteAllResponsesAction: ActionFunction = async ({ params }) => {
   const { workspaceId, requestId } = params;
   invariant(typeof requestId === 'string', 'Request ID is required');

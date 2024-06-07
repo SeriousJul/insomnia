@@ -318,7 +318,7 @@ export const createNewWorkspaceAction: ActionFunction = async ({
   invariant(typeof name === 'string', 'Name is required');
 
   const scope = formData.get('scope');
-  invariant(scope === 'design' || scope === 'collection' || scope === 'mock-server', 'Scope is required');
+  invariant(scope === 'design' || scope === 'collection', 'Scope is required');
 
   const flushId = await database.bufferChanges();
 
@@ -329,21 +329,6 @@ export const createNewWorkspaceAction: ActionFunction = async ({
     scope,
     parentId: projectId,
   });
-
-  if (scope === 'mock-server') {
-    const mockServerType = formData.get('mockServerType');
-    invariant(mockServerType === 'cloud' || mockServerType === 'self-hosted', 'Mock Server type is required');
-    if (mockServerType === 'cloud') {
-      await models.mockServer.getOrCreateForParentId(workspace._id, { name, useInsomniaCloud: true });
-      return redirect(`/organization/${organizationId}/project/${projectId}/workspace/${workspace._id}/${scopeToActivity(workspace.scope)}`);
-    }
-    if (mockServerType === 'self-hosted') {
-      const mockServerUrl = formData.get('mockServerUrl');
-      invariant(typeof mockServerUrl === 'string', 'Mock Server URL is required');
-      await models.mockServer.getOrCreateForParentId(workspace._id, { name, useInsomniaCloud: false, url: mockServerUrl });
-      return redirect(`/organization/${organizationId}/project/${projectId}/workspace/${workspace._id}/${scopeToActivity(workspace.scope)}`);
-    }
-  }
 
   if (scope === 'design') {
     await models.apiSpec.getOrCreateForParentId(workspace._id);
@@ -476,14 +461,6 @@ export const updateWorkspaceAction: ActionFunction = async ({ request }) => {
 
     await models.apiSpec.update(apiSpec, {
       fileName: patch.name || workspace.name,
-    });
-  }
-  if (workspace.scope === 'mock-server') {
-    const mockServer = await models.mockServer.getByParentId(workspaceId);
-    invariant(mockServer, 'No MockServer found for this workspace');
-
-    await models.mockServer.update(mockServer, {
-      name: patch.name || workspace.name,
     });
   }
 
@@ -982,66 +959,5 @@ export const reorderCollectionAction: ActionFunction = async ({ request, params 
     await update(item, { parentId, metaSortKey });
   }
 
-  return null;
-};
-
-export const createMockRouteAction: ActionFunction = async ({ request, params }) => {
-  const { organizationId, projectId, workspaceId } = params;
-
-  const patch = await request.json();
-  invariant(typeof patch.name === 'string', 'Name is required');
-  // TODO: remove this hack which enables a mock server to be created alongside a route
-  // TODO: use an alternate method to create new workspace and server together
-  // create a mock server under the workspace with the same name
-  if (patch.mockServerName) {
-    const collectionWorkspace = await models.workspace.getById(workspaceId);
-    invariant(collectionWorkspace, 'Collection workspace not found');
-    const mockWorkspace = await models.workspace.create({
-      name: collectionWorkspace.name,
-      scope: 'mock-server',
-      parentId: projectId,
-    });
-    invariant(mockWorkspace, 'Workspace not found');
-    const newMockServer = await models.mockServer.getOrCreateForParentId(mockWorkspace._id, { name: collectionWorkspace.name });
-    delete patch.mockServerName;
-    const mockRoute = await models.mockRoute.create({ ...patch, parentId: newMockServer._id });
-    return redirect(`/organization/${organizationId}/project/${projectId}/workspace/${newMockServer.parentId}/mock-server/mock-route/${mockRoute._id}`);
-  }
-  const mockServer = await models.mockServer.getById(patch.parentId);
-  invariant(mockServer, 'Mock server not found');
-  const mockRoute = await models.mockRoute.create(patch);
-  return redirect(`/organization/${organizationId}/project/${projectId}/workspace/${mockServer.parentId}/mock-server/mock-route/${mockRoute._id}`);
-};
-export const updateMockRouteAction: ActionFunction = async ({ request, params }) => {
-  const { mockRouteId } = params;
-  invariant(typeof mockRouteId === 'string', 'Mock route id is required');
-  const patch = await request.json();
-
-  const mockRoute = await models.mockRoute.getById(mockRouteId);
-  invariant(mockRoute, 'Mock route is required');
-
-  await models.mockRoute.update(mockRoute, patch);
-  return null;
-};
-export const deleteMockRouteAction: ActionFunction = async ({ request, params }) => {
-  const { organizationId, projectId, workspaceId, mockRouteId } = params;
-  invariant(typeof mockRouteId === 'string', 'Mock route id is required');
-  const mockRoute = await models.mockRoute.getById(mockRouteId);
-  invariant(mockRoute, 'mockRoute not found');
-  const { isSelected } = await request.json();
-
-  await models.mockRoute.remove(mockRoute);
-  if (isSelected) {
-    return redirect(`/organization/${organizationId}/project/${projectId}/workspace/${workspaceId}/mock-server`);
-  }
-  return null;
-};
-export const updateMockServerAction: ActionFunction = async ({ request, params }) => {
-  const { workspaceId } = params;
-  invariant(typeof workspaceId === 'string', 'Workspace ID is required');
-  const patch = await request.json();
-  const mockServer = await models.mockServer.getByParentId(workspaceId);
-  invariant(mockServer, 'Mock server not found');
-  await models.mockServer.update(mockServer, patch);
   return null;
 };

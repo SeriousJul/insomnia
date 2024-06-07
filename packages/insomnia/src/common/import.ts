@@ -6,7 +6,6 @@ import { BaseEnvironment, Environment, isEnvironment } from '../models/environme
 import { GrpcRequest, isGrpcRequest } from '../models/grpc-request';
 import { BaseModel, getModel } from '../models/index';
 import * as models from '../models/index';
-import { isMockRoute, MockRoute } from '../models/mock-route';
 import { isRequest, Request } from '../models/request';
 import { isRequestGroup } from '../models/request-group';
 import { isUnitTest, UnitTest } from '../models/unit-test';
@@ -74,7 +73,6 @@ export interface ScanResult {
   cookieJars?: CookieJar[];
   unitTests?: UnitTest[];
   unitTestSuites?: UnitTestSuite[];
-  mockRoutes?: MockRoute[];
   type?: InsomniaImporter;
   errors: string[];
 }
@@ -132,7 +130,6 @@ export async function scanResources({
   const apiSpecs = resources.filter(isApiSpec);
   const workspaces = resources.filter(isWorkspace);
   const cookieJars = resources.filter(isCookieJar);
-  const mockRoutes = resources.filter(isMockRoute);
 
   return {
     type,
@@ -143,7 +140,6 @@ export async function scanResources({
     environments,
     apiSpecs,
     cookieJars,
-    mockRoutes,
     errors: [],
   };
 }

@@ -7,7 +7,6 @@ import {
   ACTIVITY_UNIT_TEST,
   FLEXIBLE_URL_REGEX,
   getContentTypeName,
-  getMockServiceBinURL,
   isValidActivity,
   isWorkspaceActivity,
 } from '../constants';
@@ -85,13 +84,5 @@ describe('getContentTypeName', () => {
   });
   it('should return unknown content type as other content type name name', () => {
     expect(getContentTypeName('unknown')).toBe('Other');
-  });
-});
-
-describe('getMockSeviceBinUrl', () => {
-  it('should add subdomain when using insomnia cloud', () => {
-    expect(getMockServiceBinURL('xyz', '/my-route', undefined)).toBe('https://xyz.mock.insomnia.rest/my-route');
-    expect(getMockServiceBinURL('mock_123', '/my-route', undefined)).toBe('https://mock_123.mock.insomnia.rest/my-route');
-    expect(getMockServiceBinURL('mock_123', '/my-route', 'http://localhost:8080')).toBe('http://localhost:8080/bin/mock_123/my-route');
   });
 });

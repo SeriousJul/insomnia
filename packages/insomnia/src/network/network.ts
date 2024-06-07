@@ -22,8 +22,6 @@ import { CaCertificate } from '../models/ca-certificate';
 import { ClientCertificate } from '../models/client-certificate';
 import { CookieJar } from '../models/cookie-jar';
 import { Environment } from '../models/environment';
-import { MockRoute } from '../models/mock-route';
-import { MockServer } from '../models/mock-server';
 import type { Request, RequestAuthentication, RequestParameter } from '../models/request';
 import { isRequestGroup, RequestGroup } from '../models/request-group';
 import type { Settings } from '../models/settings';
@@ -59,12 +57,10 @@ export const getOrInheritAuthentication = ({ request, requestGroups }: { request
 export const fetchRequestData = async (requestId: string) => {
   const request = await models.request.getById(requestId);
   invariant(request, 'failed to find request');
-  const ancestors = await db.withAncestors<Request | RequestGroup | Workspace | MockRoute | MockServer>(request, [
+  const ancestors = await db.withAncestors<Request | RequestGroup | Workspace>(request, [
     models.request.type,
     models.requestGroup.type,
     models.workspace.type,
-    models.mockRoute.type,
-    models.mockServer.type,
   ]);
   const workspaceDoc = ancestors.find(isWorkspace);
   invariant(workspaceDoc?._id, 'failed to find workspace');

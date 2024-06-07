@@ -14,7 +14,6 @@ import { useRootLoaderData } from '../../routes/root';
 import { PanelContainer, TabItem, Tabs } from '../base/tabs';
 import { PreviewModeDropdown } from '../dropdowns/preview-mode-dropdown';
 import { ResponseHistoryDropdown } from '../dropdowns/response-history-dropdown';
-import { MockResponseExtractor } from '../editors/mock-response-extractor';
 import { ErrorBoundary } from '../error-boundary';
 import { showError } from '../modals';
 import { ResponseTimer } from '../response-timer';
@@ -223,9 +222,6 @@ export const ResponsePane: FC<Props> = ({
               timeline={timeline}
             />
           </ErrorBoundary>
-        </TabItem>
-        <TabItem key="mock-response" title="Mock Response">
-          <MockResponseExtractor />
         </TabItem>
       </Tabs>
       <ErrorBoundary errorClassName="font-error pad text-center">

@@ -4,11 +4,9 @@ import { useFetcher, useParams } from 'react-router-dom';
 
 import { parseApiSpec } from '../../../common/api-specs';
 import { getProductName } from '../../../common/constants';
-import { exportMockServerToFile } from '../../../common/export';
 import { getWorkspaceLabel } from '../../../common/get-workspace-label';
 import { RENDER_PURPOSE_NO_RENDER } from '../../../common/render';
 import type { ApiSpec } from '../../../models/api-spec';
-import { MockServer } from '../../../models/mock-server';
 import { isRemoteProject, Project } from '../../../models/project';
 import type { Workspace } from '../../../models/workspace';
 import { WorkspaceScopeKeys } from '../../../models/workspace';
@@ -28,7 +26,6 @@ import { SvgIcon } from '../svg-icon';
 interface Props {
   workspace: Workspace;
   apiSpec?: ApiSpec;
-  mockServer?: MockServer;
   project: Project;
   projects: Project[];
 }
@@ -82,7 +79,7 @@ const useDocumentActionPlugins = ({ workspace, apiSpec, project }: Props) => {
 };
 
 export const WorkspaceCardDropdown: FC<Props> = props => {
-  const { workspace, mockServer, project, projects } = props;
+  const { workspace, project, projects } = props;
   const fetcher = useFetcher();
   const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -153,9 +150,7 @@ export const WorkspaceCardDropdown: FC<Props> = props => {
             <ItemContent
               label="Export"
               icon="file-export"
-              onClick={() => workspace.scope !== 'mock-server'
-                ? setIsExportModalOpen(true)
-                : exportMockServerToFile(workspace)}
+              onClick={() => setIsExportModalOpen(true)}
             />
           </DropdownItem>
           <DropdownItem aria-label='Settings'>
@@ -208,7 +203,6 @@ export const WorkspaceCardDropdown: FC<Props> = props => {
       {isSettingsModalOpen && (
         <WorkspaceSettingsModal
           workspace={workspace}
-          mockServer={mockServer}
           onClose={() => setIsSettingsModalOpen(false)}
         />
       )}

@@ -53,7 +53,6 @@ import * as models from '../../models';
 import { userSession } from '../../models';
 import { ApiSpec } from '../../models/api-spec';
 import { sortProjects } from '../../models/helpers/project';
-import { MockServer } from '../../models/mock-server';
 import { isOwnerOfOrganization, isPersonalOrganization, isScratchpadOrganizationId } from '../../models/organization';
 import { Organization } from '../../models/organization';
 import {
@@ -77,7 +76,6 @@ import { showAlert, showPrompt } from '../components/modals';
 import { AlertModal } from '../components/modals/alert-modal';
 import { GitRepositoryCloneModal } from '../components/modals/git-repository-settings-modal/git-repo-clone-modal';
 import { ImportModal } from '../components/modals/import-modal';
-import { MockServerSettingsModal } from '../components/modals/mock-server-settings-modal';
 import { EmptyStatePane } from '../components/panes/project-empty-state-pane';
 import { TimeFromNow } from '../components/time-from-now';
 import { useInsomniaEventStreamContext } from '../context/app/insomnia-event-stream-context';
@@ -113,7 +111,6 @@ async function getAllTeamProjects(organizationId: string) {
 export const scopeToLabelMap: Record<WorkspaceScope | 'unsynced', 'Document' | 'Collection' | 'Mock Server' | 'Unsynced'> = {
   design: 'Document',
   collection: 'Collection',
-  'mock-server': 'Mock Server',
   unsynced: 'Unsynced',
 };
 
@@ -282,7 +279,6 @@ export interface InsomniaFile {
   lastCommit?: string;
   version?: string;
   oasFormat?: string;
-  mockServer?: MockServer;
   workspace?: Workspace;
   apiSpec?: ApiSpec;
 }
@@ -296,7 +292,6 @@ export interface ProjectLoaderData {
   allFilesCount: number;
   documentsCount: number;
   collectionsCount: number;
-  mockServersCount: number;
   projectsCount: number;
   activeProject?: Project;
   projects: Project[];
@@ -325,15 +320,9 @@ async function getAllLocalFiles({
       $in: projectWorkspaces.map(w => w._id),
     },
   });
-  const mockServers = await database.find<MockServer>(models.mockServer.type, {
-    parentId: {
-      $in: projectWorkspaces.map(w => w._id),
-    },
-  });
 
   const files: InsomniaFile[] = projectWorkspaces.map(workspace => {
     const apiSpec = apiSpecs.find(spec => spec.parentId === workspace._id);
-    const mockServer = mockServers.find(mock => mock.parentId === workspace._id);
     let spec: ParsedApiSpec['contents'] = null;
     let specFormat: ParsedApiSpec['format'] = null;
     let specFormatVersion: ParsedApiSpec['formatVersion'] = null;
@@ -392,7 +381,6 @@ async function getAllLocalFiles({
       lastCommit: hasUnsavedChanges && workspaceMeta?.cachedGitLastCommitTime && lastCommitAuthor ? `by ${lastCommitAuthor}` : '',
       version: specVersion ? `${specVersion?.startsWith('v') ? '' : 'v'}${specVersion}` : '',
       oasFormat: specFormat ? `${specFormat === 'openapi' ? 'OpenAPI' : 'Swagger'} ${specFormatVersion || ''}` : '',
-      mockServer,
       apiSpec,
       workspace,
     };
@@ -510,7 +498,6 @@ export const loader: LoaderFunction = async ({
       allFilesCount: 0,
       documentsCount: 0,
       collectionsCount: 0,
-      mockServersCount: 0,
       projectsCount: 0,
       activeProject: undefined,
       projects: [],
@@ -578,9 +565,6 @@ export const loader: LoaderFunction = async ({
     collectionsCount: files.filter(
       file => file.scope === 'collection'
     ).length,
-    mockServersCount: files.filter(
-      file => file.scope === 'mock-server'
-    ).length,
   };
 };
 
@@ -591,7 +575,6 @@ const ProjectRoute: FC = () => {
     projects,
     allFilesCount,
     collectionsCount,
-    mockServersCount,
     documentsCount,
     projectsCount,
     learningFeature,
@@ -699,7 +682,6 @@ const ProjectRoute: FC = () => {
 
   const [isGitRepositoryCloneModalOpen, setIsGitRepositoryCloneModalOpen] =
     useState(false);
-  const [isMockServerSettingsModalOpen, setIsMockServerSettingsModalOpen] = useState(false);
 
   const fetcher = useFetcher();
   const navigate = useNavigate();
@@ -747,16 +729,6 @@ const ProjectRoute: FC = () => {
           }
         );
       },
-    });
-  };
-
-  const createNewMockServer = () => {
-    activeProject?._id &&
-    activeProject.remoteId
-      ? setIsMockServerSettingsModalOpen(true)
-      : showModal(AlertModal, {
-        title: 'Change Project',
-        message: 'Mock feature is only supported for Cloud projects.',
     });
   };
 
@@ -842,12 +814,6 @@ const ProjectRoute: FC = () => {
       icon: 'file',
       action: createNewDocument,
     },
-    {
-        id: 'new-mock-server',
-        name: 'Mock Server',
-        icon: 'server',
-      action: createNewMockServer,
-      },
       {
       id: 'import',
       name: 'Import',
@@ -899,16 +865,6 @@ const ProjectRoute: FC = () => {
         run: createNewCollection,
       },
     },
-      {
-        id: 'mock-server',
-        label: `Mock (${mockServersCount})`,
-        icon: 'server',
-        action: {
-          icon: 'plus',
-          label: 'New Mock Server',
-          run: createNewMockServer,
-        },
-      },
   ];
   const defaultStorageSelection = storage === 'local_only' ? 'local' : 'remote';
   const isRemoteProjectInconsistent = activeProject && isRemoteProject(activeProject) && storage === 'local_only';
@@ -1284,7 +1240,6 @@ const ProjectRoute: FC = () => {
                         <EmptyStatePane
                           createRequestCollection={createNewCollection}
                           createDesignDocument={createNewDocument}
-                          createMockServer={createNewMockServer}
                           importFrom={() => setImportModalType('file')}
                           cloneFromGit={importFromGit}
                           isGitSyncEnabled={isGitSyncEnabled}
@@ -1497,11 +1452,6 @@ const ProjectRoute: FC = () => {
             from={{ type: importModalType }}
             organizationId={organizationId}
             defaultProjectId={activeProject._id}
-          />
-        )}
-        {isMockServerSettingsModalOpen && (
-          <MockServerSettingsModal
-            onClose={() => setIsMockServerSettingsModalOpen(false)}
           />
         )}
       </Fragment>

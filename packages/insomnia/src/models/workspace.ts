@@ -17,7 +17,7 @@ export interface BaseWorkspace {
   name: string;
   description: string;
   certificates?: any; // deprecated
-  scope: 'design' | 'collection' | 'mock-server';
+  scope: 'design' | 'collection';
 }
 
 export type WorkspaceScope = BaseWorkspace['scope'];
@@ -25,7 +25,6 @@ export type WorkspaceScope = BaseWorkspace['scope'];
 export const WorkspaceScopeKeys = {
   design: 'design',
   collection: 'collection',
-  mockServer: 'mock-server',
 } as const;
 
 export type Workspace = BaseModel & BaseWorkspace;
@@ -40,10 +39,6 @@ export const isDesign = (workspace: Pick<Workspace, 'scope'>) => (
 
 export const isCollection = (workspace: Pick<Workspace, 'scope'>) => (
   workspace.scope === WorkspaceScopeKeys.collection
-);
-
-export const isMockServer = (workspace: Pick<Workspace, 'scope'>) => (
-  workspace.scope === WorkspaceScopeKeys.mockServer
 );
 
 export const init = (): BaseWorkspace => ({
@@ -142,8 +137,7 @@ type MigrationWorkspace = Merge<Workspace, { scope: OldScopeTypes | Workspace['s
  */
 function _migrateScope(workspace: MigrationWorkspace) {
   if (workspace.scope === WorkspaceScopeKeys.design
-    || workspace.scope === WorkspaceScopeKeys.collection
-    || workspace.scope === WorkspaceScopeKeys.mockServer) {
+    || workspace.scope === WorkspaceScopeKeys.collection) {
     return workspace as Workspace;
   }
   // designer and spec => design, unset => collection
@@ -173,8 +167,6 @@ export const scopeToActivity = (scope: WorkspaceScope) => {
       return ACTIVITY_DEBUG;
     case WorkspaceScopeKeys.design:
       return ACTIVITY_SPEC;
-    case WorkspaceScopeKeys.mockServer:
-      return 'mock-server';
     default:
       return ACTIVITY_DEBUG;
   }

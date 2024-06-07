@@ -774,17 +774,6 @@ const ImportResourcesForm = ({
                 </td>
               </tr>
             )}
-            {scanResult.mockRoutes &&
-              scanResult.mockRoutes?.length > 0 && (
-                <tr className="table--no-outline-row">
-                  <td>
-                    {scanResult.mockRoutes?.length}{' '}
-                    {scanResult.mockRoutes?.length === 1
-                      ? 'Mock Route'
-                      : 'Mock Routes'}
-                  </td>
-                </tr>
-              )}
           </tbody>
         </table>
       </div>
