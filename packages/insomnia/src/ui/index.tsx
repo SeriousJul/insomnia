@@ -1068,7 +1068,7 @@ async function renderApp() {
   );
 
   // Store the last location in local storage
-  router.subscribe(({ location, navigation }) => {
+  router.subscribe(({ location }) => {
     const match = matchPath(
       {
         path: '/organization/:organizationId',
@@ -1076,16 +1076,7 @@ async function renderApp() {
       },
       location.pathname
     );
-    const nextRoute = navigation.location?.pathname;
     const currentRoute = location.pathname;
-    // Use navigation send tracking events on page change
-    const bothHaveValueButNotEqual = nextRoute && currentRoute && nextRoute !== currentRoute;
-    if (bothHaveValueButNotEqual) {
-      // transforms /organization/:org_* to /organization/:org_id
-      const routeWithoutUUID = nextRoute.replace(/_[a-f0-9]{32}/g, '_id');
-      // console.log('Tracking page view', { name: routeWithoutUUID });
-      window.main.trackPageView({ name: routeWithoutUUID });
-    }
 
     match?.params.organizationId && localStorage.setItem(`locationHistoryEntry:${match?.params.organizationId}`, currentRoute);
   });

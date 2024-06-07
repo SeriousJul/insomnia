@@ -12,14 +12,13 @@ import { isRemoteProject } from '../../models/project';
 import { isRequestGroup, isRequestGroupId } from '../../models/request-group';
 import { UnitTest } from '../../models/unit-test';
 import { UnitTestSuite } from '../../models/unit-test-suite';
-import { isCollection, scopeToActivity, Workspace } from '../../models/workspace';
+import { scopeToActivity, Workspace } from '../../models/workspace';
 import { WorkspaceMeta } from '../../models/workspace-meta';
 import { getSendRequestCallback } from '../../network/unit-test-feature';
 import { initializeLocalBackendProjectAndMarkForSync } from '../../sync/vcs/initialize-backend-project';
 import { VCSInstance } from '../../sync/vcs/insomnia-sync';
 import { insomniaFetch } from '../../ui/insomniaFetch';
 import { invariant } from '../../utils/invariant';
-import { SegmentEvent } from '../analytics';
 import { SpectralRunner } from '../worker/spectral-run';
 
 // Project
@@ -366,12 +365,6 @@ export const createNewWorkspaceAction: ActionFunction = async ({
     });
   }
 
-  window.main.trackSegmentEvent({
-    event: isCollection(workspace)
-      ? SegmentEvent.collectionCreate
-      : SegmentEvent.documentCreate,
-  });
-
   return redirect(`/organization/${organizationId}/project/${projectId}/workspace/${workspace._id}/${scopeToActivity(workspace.scope)}`);
 };
 
@@ -550,8 +543,6 @@ export const createNewTestSuiteAction: ActionFunction = async ({
     name,
   });
 
-  window.main.trackSegmentEvent({ event: SegmentEvent.testSuiteCreate });
-
   return redirect(`/organization/${organizationId}/project/${projectId}/workspace/${workspaceId}/test/test-suite/${unitTestSuite._id}`);
 };
 
@@ -566,8 +557,6 @@ export const deleteTestSuiteAction: ActionFunction = async ({ params }) => {
   invariant(unitTestSuite, 'Test Suite not found');
 
   await models.unitTestSuite.remove(unitTestSuite);
-
-  window.main.trackSegmentEvent({ event: SegmentEvent.testSuiteDelete });
 
   return redirect(`/organization/${organizationId}/project/${projectId}/workspace/${workspaceId}/test`);
 };
@@ -605,8 +594,6 @@ export const runAllTestsAction: ActionFunction = async ({
     results,
     parentId: workspaceId,
   });
-
-  window.main.trackSegmentEvent({ event: SegmentEvent.unitTestRun });
 
   return redirect(`/organization/${organizationId}/project/${projectId}/workspace/${workspaceId}/test/test-suite/${testSuiteId}/test-result/${testResult._id}`);
 };
@@ -646,8 +633,6 @@ expect(response1.status).to.equal(200);`,
     name,
   });
 
-  window.main.trackSegmentEvent({ event: SegmentEvent.unitTestCreate });
-
   return null;
 };
 
@@ -662,7 +647,6 @@ export const deleteTestAction: ActionFunction = async ({ params }) => {
   invariant(unitTest, 'Test not found');
 
   await models.unitTest.remove(unitTest);
-  window.main.trackSegmentEvent({ event: SegmentEvent.unitTestDelete });
 
   return null;
 };
@@ -707,8 +691,6 @@ export const runTestAction: ActionFunction = async ({ params }) => {
     results,
     parentId: unitTest.parentId,
   });
-
-  window.main.trackSegmentEvent({ event: SegmentEvent.unitTestRun });
 
   return redirect(`/organization/${organizationId}/project/${projectId}/workspace/${workspaceId}/test/test-suite/${testSuiteId}/test-result/${testResult._id}`);
 };

@@ -13,7 +13,6 @@ import { useFetcher } from 'react-router-dom';
 import styled from 'styled-components';
 
 import { isScratchpadProject } from '../../../models/project';
-import { SegmentEvent } from '../../analytics';
 import {
   ImportResourcesActionResult,
   ScanForResourcesActionResult,
@@ -433,11 +432,6 @@ export const ImportModal: FC<ImportModalProps> = ({
               importFetcher.submit(e.currentTarget, {
                 method: 'post',
                 action: '/import/resources',
-              });
-              const type = scanResourcesFetcher.data ? scanResourcesFetcher.data.type?.id || 'unknown' : 'unknown';
-              window.main.trackSegmentEvent({
-                event: SegmentEvent.dataImport,
-                properties: { 'data-import-type': type },
               });
             }}
           />

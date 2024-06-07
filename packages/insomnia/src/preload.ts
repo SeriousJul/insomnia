@@ -62,8 +62,6 @@ const main: Window['main'] = {
   webSocket,
   grpc,
   curl,
-  trackSegmentEvent: options => ipcRenderer.send('trackSegmentEvent', options),
-  trackPageView: options => ipcRenderer.send('trackPageView', options),
   showContextMenu: options => ipcRenderer.send('show-context-menu', options),
   database: {
     caCertificate: {

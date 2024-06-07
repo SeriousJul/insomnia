@@ -4,7 +4,6 @@ import { ActionFunction, Link, redirect, useFetcher, useNavigate } from 'react-r
 
 import { getAppWebsiteBaseURL } from '../../common/constants';
 import { exportAllData } from '../../common/export-all-data';
-import { SegmentEvent } from '../analytics';
 import { getLoginUrl } from '../auth-session-provider';
 import { Icon } from '../components/icon';
 import { showAlert } from '../components/modals';
@@ -163,9 +162,6 @@ const Login = () => {
       <div className='flex gap-[--padding-md] justify-between'>
         <Button
           onPress={() => {
-            window.main.trackSegmentEvent({
-              event: SegmentEvent.selectScratchpad,
-            });
             navigate('/organization/org_scratchpad/project/proj_scratchpad/workspace/wrk_scratchpad/debug');
           }}
           aria-label='Use the Scratch Pad'
@@ -272,9 +268,6 @@ const Login = () => {
                         showAlert({
                           title: 'Export Complete',
                           message: 'All your data have been successfully exported',
-                        });
-                        window.main.trackSegmentEvent({
-                          event: SegmentEvent.exportAllCollections,
                         });
                       }}
                       aria-label='Export all data'

@@ -59,8 +59,6 @@ export type MainOnChannels =
   | 'showItemInFolder'
   | 'showOpenDialog'
   | 'showSaveDialog'
-  | 'trackPageView'
-  | 'trackSegmentEvent'
   | 'webSocket.close'
   | 'webSocket.closeAll'
   | 'writeText';

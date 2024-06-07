@@ -3,7 +3,6 @@ import fs from 'fs';
 
 import type { HiddenBrowserWindowBridgeAPI } from '../../hidden-window';
 import * as models from '../../models';
-import { SegmentEvent, trackPageView, trackSegmentEvent } from '../analytics';
 import { authorizeUserInWindow } from '../authorizeUserInWindow';
 import { backup, restoreBackup } from '../backup';
 import installPlugin from '../install-plugin';
@@ -32,8 +31,6 @@ export interface RendererToMainBridgeAPI {
   webSocket: WebSocketBridgeAPI;
   grpc: gRPCBridgeAPI;
   curl: CurlBridgeAPI;
-  trackSegmentEvent: (options: { event: string; properties?: Record<string, unknown> }) => void;
-  trackPageView: (options: { name: string }) => void;
   showContextMenu: (options: { key: string }) => void;
   database: {
     caCertificate: {
@@ -77,13 +74,6 @@ export function registerMainHandlers() {
 
   ipcMainOn('cancelCurlRequest', (_, requestId: string): void => {
     cancelCurlRequest(requestId);
-  });
-
-  ipcMainOn('trackSegmentEvent', (_, options: { event: SegmentEvent; properties?: Record<string, unknown> }): void => {
-    trackSegmentEvent(options.event, options.properties);
-  });
-  ipcMainOn('trackPageView', (_, options: { name: string }): void => {
-    trackPageView(options.name);
   });
 
   ipcMainHandle('installPlugin', (_, lookupName: string) => {

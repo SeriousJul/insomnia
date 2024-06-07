@@ -10,8 +10,8 @@ import { isCookieJar } from '../models/cookie-jar';
 import { Environment, isEnvironment } from '../models/environment';
 import { isGrpcRequest } from '../models/grpc-request';
 import * as requestOperations from '../models/helpers/request-operations';
-import { type BaseModel, environment } from '../models/index';
 import * as models from '../models/index';
+import { type BaseModel, environment } from '../models/index';
 import { isProtoDirectory } from '../models/proto-directory';
 import { isProtoFile } from '../models/proto-file';
 import { isRequest } from '../models/request';
@@ -22,7 +22,6 @@ import { isWebSocketPayload } from '../models/websocket-payload';
 import { isWebSocketRequest } from '../models/websocket-request';
 import { isWorkspace, Workspace } from '../models/workspace';
 import { resetKeys } from '../sync/ignore-keys';
-import { SegmentEvent } from '../ui/analytics';
 import { showAlert, showError, showModal } from '../ui/components/modals';
 import { AskModal } from '../ui/components/modals/ask-modal';
 import { SelectModal } from '../ui/components/modals/select-modal';
@@ -415,7 +414,6 @@ export const exportProjectToFile = (activeProjectName: string, workspacesForActi
           default:
             throw new Error(`selected export format "${selectedFormat}" is invalid`);
         }
-        window.main.trackSegmentEvent({ event: SegmentEvent.dataExport, properties: { type: selectedFormat } });
       } catch (err) {
         showError({
           title: 'Export Failed',
@@ -478,7 +476,6 @@ export const exportMockServerToFile = async (workspace: Workspace) => {
       try {
         const stringifiedExport = await exportMockServer(workspace, selectedFormat);
         writeExportedFileToFileSystem(fileName, stringifiedExport, err => err && console.warn('Export failed', err));
-        window.main.trackSegmentEvent({ event: SegmentEvent.dataExport, properties: { type: selectedFormat, scope: 'mock-server' } });
       } catch (err) {
         showError({
           title: 'Export Failed',
@@ -541,7 +538,6 @@ export const exportRequestsToFile = (workspaceId: string, requestIds: string[]) 
           default:
             throw new Error(`selected export format "${selectedFormat}" is invalid`);
         }
-        window.main.trackSegmentEvent({ event: SegmentEvent.dataExport, properties: { type: selectedFormat } });
       } catch (err) {
         showError({
           title: 'Export Failed',

@@ -3,7 +3,6 @@ import React, { forwardRef, useImperativeHandle, useState } from 'react';
 import { Button, Dialog, Form, GridList, GridListItem, Heading, Modal, ModalOverlay, Radio, RadioGroup } from 'react-aria-components';
 
 import type { MergeConflict } from '../../../sync/types';
-import { SegmentEvent } from '../../analytics';
 import { Icon } from '../icon';
 
 const differ = new Differ({
@@ -47,9 +46,6 @@ export const SyncMergeModal = forwardRef<SyncMergeModalHandle>((_, ref) => {
         labels,
       });
 
-      window.main.trackSegmentEvent({
-        event: SegmentEvent.syncConflictResolutionStart,
-      });
     },
   }), []);
 
@@ -103,18 +99,6 @@ export const SyncMergeModal = forwardRef<SyncMergeModalHandle>((_, ref) => {
                 onSubmit={event => {
                   event.preventDefault();
                   handleDone?.(conflicts);
-                  // if at least one conflict.choose is theirsBlob, track conflict resolution complete as theirs
-                  if (conflicts?.some(conflict => conflict.choose === conflict.theirsBlob)) {
-                    window.main.trackSegmentEvent({
-                      event: SegmentEvent.syncConflictResolutionCompleteTheirs,
-                    });
-                  }
-                  // if at least one conflict.choose is mine, track conflict resolution complete as mine
-                  if (conflicts?.some(conflict => conflict.choose === conflict.mineBlob)) {
-                    window.main.trackSegmentEvent({
-                      event: SegmentEvent.syncConflictResolutionCompleteMine,
-                    });
-                  }
 
                   setState({
                     conflicts: [],

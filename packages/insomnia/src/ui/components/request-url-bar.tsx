@@ -12,10 +12,8 @@ import { isRequestGroup, type RequestGroup } from '../../models/request-group';
 import { getOrInheritAuthentication } from '../../network/network';
 import { tryToInterpolateRequestOrShowRenderErrorModal } from '../../utils/try-interpolate';
 import { buildQueryStringFromParams, joinUrlAndQueryString } from '../../utils/url/querystring';
-import { SegmentEvent } from '../analytics';
 import { useReadyState } from '../hooks/use-ready-state';
-import { useRequestPatcher } from '../hooks/use-request';
-import { useRequestMetaPatcher } from '../hooks/use-request';
+import { useRequestMetaPatcher, useRequestPatcher } from '../hooks/use-request';
 import { useTimeoutWhen } from '../hooks/useTimeoutWhen';
 import { ConnectActionParams, RequestLoaderData, SendActionParams } from '../routes/request';
 import { useRootLoaderData } from '../routes/root';
@@ -133,15 +131,6 @@ export const RequestUrlBar = forwardRef<RequestUrlBarHandle, Props>(({
 
   const sendOrConnect = useCallback(async (shouldPromptForPathAfterResponse?: boolean, ignoreUndefinedEnvVariable?: boolean) => {
     models.stats.incrementExecutedRequests();
-    window.main.trackSegmentEvent({
-      event: SegmentEvent.requestExecute,
-      properties: {
-        preferredHttpVersion: settings.preferredHttpVersion,
-        // @ts-expect-error -- who cares
-        authenticationType: activeRequest.authentication?.type,
-        mimeType: activeRequest.body.mimeType,
-      },
-    });
     // reset timeout
     setCurrentTimeout(undefined);
 
@@ -196,7 +185,7 @@ export const RequestUrlBar = forwardRef<RequestUrlBarHandle, Props>(({
         ),
       });
     }
-  }, [activeEnvironment._id, activeRequest, activeWorkspace._id, connect, requestId, send, settings.preferredHttpVersion]);
+  }, [activeEnvironment._id, activeRequest, activeWorkspace._id, connect, requestId, send]);
 
   useEffect(() => {
     const sendOnMetaEnter = (event: KeyboardEvent) => {

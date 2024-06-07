@@ -1,7 +1,6 @@
 import React, { FC, Fragment, useEffect, useState } from 'react';
 import { Button, Heading, ListBox, ListBoxItem, Popover, Select, SelectValue } from 'react-aria-components';
-import { useFetcher, useParams } from 'react-router-dom';
-import { useRouteLoaderData } from 'react-router-dom';
+import { useFetcher, useParams, useRouteLoaderData } from 'react-router-dom';
 
 import { getProductName } from '../../../common/constants';
 import { exportProjectToFile } from '../../../common/export';
@@ -12,7 +11,6 @@ import { strings } from '../../../common/strings';
 import { isScratchpadOrganizationId, Organization } from '../../../models/organization';
 import { Project } from '../../../models/project';
 import { isScratchpad, Workspace } from '../../../models/workspace';
-import { SegmentEvent } from '../../analytics';
 import { useOrganizationLoaderData } from '../../routes/organization';
 import { ListWorkspacesLoaderData } from '../../routes/project';
 import { useRootLoaderData } from '../../routes/root';
@@ -353,9 +351,6 @@ export const ImportExport: FC<Props> = ({ hideSettingsModal }) => {
                 showAlert({
                   title: 'Export Complete',
                   message: 'All your data have been successfully exported',
-                });
-                window.main.trackSegmentEvent({
-                  event: SegmentEvent.exportAllCollections,
                 });
               }}
               aria-label='Export all data'

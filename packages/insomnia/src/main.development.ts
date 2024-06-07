@@ -1,5 +1,4 @@
-import electron, { app, session } from 'electron';
-import { BrowserWindow } from 'electron';
+import electron, { app, BrowserWindow, session } from 'electron';
 import contextMenu from 'electron-context-menu';
 import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 import fs from 'fs/promises';
@@ -9,7 +8,6 @@ import { userDataFolder } from '../config/config.json';
 import { getAppVersion, getProductName, isDevelopment, isMac } from './common/constants';
 import { database } from './common/database';
 import log, { initializeLogging } from './common/log';
-import { SegmentEvent, trackSegmentEvent } from './main/analytics';
 import { registerInsomniaProtocols } from './main/api.protocol';
 import { backupIfNewerVersionAvailable } from './main/backup';
 import { ipcMainOn, ipcMainOnce, registerElectronHandlers } from './main/ipc/electron';
@@ -23,7 +21,6 @@ import { checkIfRestartNeeded } from './main/squirrel-startup';
 import * as updates from './main/updates';
 import * as windowUtils from './main/window-utils';
 import * as models from './models/index';
-import { Project, RemoteProject } from './models/project';
 import type { Stats } from './models/stats';
 import type { ToastNotification } from './ui/components/toast';
 
@@ -251,25 +248,6 @@ async function _trackStats() {
     currentVersion: getAppVersion(),
     lastVersion: oldStats.currentVersion,
     launches: oldStats.launches + 1,
-  });
-
-  const localProjects = await database.count<Project>(models.project.type, {
-    remoteId: null,
-    parentId: { $ne: null },
-    _id: { $ne: models.project.SCRATCHPAD_PROJECT_ID },
-  });
-
-  const remoteProjects = await database.count<RemoteProject>(models.project.type, {
-    remoteId: { $ne: null },
-    parentId: { $ne: null },
-  });
-
-  trackSegmentEvent(SegmentEvent.appStarted, {
-    localProjects,
-    remoteProjects,
-    createdRequests: stats.createdRequests,
-    deletedRequests: stats.deletedRequests,
-    executedRequests: stats.executedRequests,
   });
 
   ipcMainOnce('halfSecondAfterAppStart', async () => {
